@@ -4,6 +4,7 @@ from time import sleep
 a = QApplication([])
 
 from main_window import *
+from menu_window import *
 
 
 class Question():
@@ -17,6 +18,10 @@ class Question():
         self.success = 0
     def get_text(self):
         return self.text
+    def get_attempts(self):
+        return self.attempts
+    def get_success(self):
+        return self.success
     def got_right(self):
         self.attempts += 1
         self.success += 1
@@ -50,14 +55,14 @@ def check_result():
     RadioGroup.setExclusive(False)
     for answer in radio_list:
         if answer.isChecked():
-            if answer.text() == lb_right_answer.text:
-               
+            if answer.text() == lb_right_answer.text():
                lb_result.setText('Правильно')
                current_question.got_right()
+               answer.setChecked(False)
             else:
                 lb_result.setText('Неправильно')
                 current_question.got_wrong()
-                answer.setChecked(False)
+            RadioGroup.setExclusive(True)
 
 def switch_screen():
     if btn_next.text() == "Відповісти":
@@ -75,7 +80,54 @@ def rest():
     sleep(int(sp_rest.value()))
     window.show()
 
+def switch_window():
+    window.hide()
+    count_stats()
+    menu_window.show()
+
+def switch_window2():
+    menu_window.hide()
+    window.show()
+
+def create_question():
+    if len(qle_question.text()) > 2:
+        question_text = qle_question.text()
+        if len(qle_answer.text()) > 2:
+            question_answer = qle_answer.text()
+            if len(qle_wrong1.text()) > 2:
+                question_wrong1 = qle_wrong1.text()
+                if len(qle_wrong2.text()) > 2:
+                    question_wrong2 = qle_wrong2.text()
+                    if len(qle_wrong3.text()) > 2:
+                        question_wrong3 = qle_wrong3.text()
+                        question = Question(question_text, question_answer, question_wrong1, question_wrong2, question_wrong3)
+                        question_list.append(question)
+
+def clear_question():
+    qle_question.clear()
+    qle_answer.clear()
+    qle_wrong1.clear()
+    qle_wrong2.clear()
+    qle_wrong3.clear()
+
+def count_stats():
+    attempts_sum = 0
+    success_sum = 0
+    for question in question_list:
+        attempts_sum += question.get_attempts()
+        success_sum += question.get_success()
+    rate = success_sum/attempts_sum*100
+    text = f'Разів відповівли: {attempts_sum}\n' \
+    f'Вірних відповідей: {success_sum}\n' \
+    
+    f'Успішність: {round(rate)}%'
+    lb_stats.setText(text)
+
 btn_rest.clicked.connect(rest)
 btn_next.clicked.connect(switch_screen)
+btn_add_question.clicked.connect(create_question)
+btn_menu.clicked.connect(switch_window)
+btn_back.clicked.connect(switch_window2)
+btn_clear_question.clicked.connect(clear_question)
 window.show()
 a.exec_()
